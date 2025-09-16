@@ -5,17 +5,13 @@ class Vertex {
     this.key = key;
     this.value = JSON.parse(key);
     this.distance = Infinity;
-    // this.heuristic = null;
+    this.heuristic = null;
     this.predecessor = null;
     this.edges = new Map();
   }
 
   addEdge(destinationKey, weight = PATH_WEIGHT) {
     this.edges.set(destinationKey, weight);
-  }
-
-  removeEdge(destinationKey) {
-    this.edges.delete(destinationKey);
   }
 }
 
@@ -39,25 +35,6 @@ export default class Graph {
     this.vertices.get(destinationKey).addEdge(sourceKey, weight);
   }
 
-  removeVertex(key) {
-    if (!this.vertices.has(key)) return;
-
-    const vertex = this.vertices.get(key);
-    vertex.edges.forEach((_, destKey) => {
-      this.vertices.get(destKey).removeEdge(key);
-    });
-    this.vertices.forEach((vertex) => vertex.removeEdge(key));
-    this.vertices.delete(key);
-  }
-
-  removeEdge(sourceKey, destinationKey) {
-    if (!this.vertices.has(sourceKey) || !this.vertices.has(destinationKey)) {
-      throw new Error("Both vertices must exist to remove an edge.");
-    }
-    this.vertices.get(sourceKey).removeEdge(destinationKey);
-    this.vertices.get(destinationKey).removeEdge(sourceKey);
-  }
-
   populateGraph(start, end) {
     this.addVertex(JSON.stringify(start));
     this.addVertex(JSON.stringify(end));
@@ -65,14 +42,12 @@ export default class Graph {
     const endVertex = this.vertices.get(JSON.stringify(end));
 
     startVertex.distance = 0;
-    // endVertex.heuristic = 0;
+    endVertex.heuristic = 0;
 
     const queue = [startVertex];
 
+    // while still items in queue and end position not explored yet
     while (queue.length && !endVertex.edges.size) {
-      queue.sort((a, b) => {
-        return a.distance + a.heuristic - (b.distance + b.heuristic);
-      });
       let currentVertex = queue.shift();
 
       const possibleMoves = calculateAdjecents(currentVertex.value);
@@ -94,8 +69,8 @@ export default class Graph {
     while (queue.length) {
       const currentVertex = queue.shift();
       visited.add(currentVertex);
+
       const neighborsKeys = currentVertex.edges.keys();
-      // console.log(neighborsKeys);
       neighborsKeys.forEach((neighborKey) => {
         const currentNeigbor = this.vertices.get(neighborKey);
         if (currentVertex.distance + 3 < currentNeigbor.distance) {
@@ -121,42 +96,16 @@ export default class Graph {
 
     const result = [];
 
-    let currentTracer = endVertex;
-    while (currentTracer.predecessor) {
-      result.unshift(currentTracer.value);
-      const newKey = currentTracer.predecessor;
+    let currentVertex = endVertex;
+    while (currentVertex.predecessor) {
+      result.unshift(currentVertex.value);
+      const newKey = currentVertex.predecessor;
       const newVertex = this.vertices.get(newKey);
-      currentTracer = newVertex;
+      currentVertex = newVertex;
     }
     result.unshift(startVertex.value);
 
     return result;
-  }
-
-  bfsTraversal(startKey, endKey) {
-    if (!this.vertices.has(startKey)) {
-      throw new Error("Starting vertex does not exist.");
-    }
-
-    const queue = [startKey];
-    const visited = new Set();
-
-    while (queue) {
-      const currentKey = queue.shift();
-      if (currentKey == endKey) {
-        return this.vertices.get(currentKey);
-      }
-
-      if (!visited.has(currentKey)) {
-        visited.add(currentKey);
-        const neighbors = Array.from(
-          this.vertices.get(currentKey).edges.keys()
-        );
-        queue.push(...neighbors.filter((neighbor) => !visited.has(neighbor)));
-      }
-    }
-
-    return null;
   }
 
   printGraph() {
