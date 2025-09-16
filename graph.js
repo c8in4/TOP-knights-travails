@@ -5,7 +5,7 @@ class Vertex {
     this.key = key;
     this.value = JSON.parse(key);
     this.distance = Infinity;
-    this.heuristic = null;
+    // this.heuristic = null;
     this.predecessor = null;
     this.edges = new Map();
   }
@@ -65,12 +65,7 @@ export default class Graph {
     const endVertex = this.vertices.get(JSON.stringify(end));
 
     startVertex.distance = 0;
-    // startVertex.heuristic = calculateHeuristic(
-    //   startVertex.value,
-    //   endVertex.value
-    // );
-
-    endVertex.heuristic = 0;
+    // endVertex.heuristic = 0;
 
     const queue = [startVertex];
 
@@ -84,15 +79,58 @@ export default class Graph {
       possibleMoves.forEach((move) => {
         this.addEdge(currentVertex.key, JSON.stringify(move));
         const newVertex = this.vertices.get(JSON.stringify(move));
-        // newVertex.predecessor = currentVertex.key;
-        // newVertex.distance = currentVertex.distance + 3;
-        // newVertex.heuristic = calculateHeuristic(
-        //   newVertex.value,
-        //   endVertex.value
-        // );
         queue.push(newVertex);
       });
     }
+  }
+
+  // find paths
+  findPaths(start) {
+    const startVertex = this.vertices.get(JSON.stringify(start));
+
+    let queue = [startVertex];
+    const visited = new Set();
+
+    while (queue.length) {
+      const currentVertex = queue.shift();
+      visited.add(currentVertex);
+      const neighborsKeys = currentVertex.edges.keys();
+      // console.log(neighborsKeys);
+      neighborsKeys.forEach((neighborKey) => {
+        const currentNeigbor = this.vertices.get(neighborKey);
+        if (currentVertex.distance + 3 < currentNeigbor.distance) {
+          currentNeigbor.distance = currentVertex.distance + 3;
+          currentNeigbor.predecessor = currentVertex.key;
+        }
+        if (!visited.has(currentNeigbor)) {
+          queue.push(currentNeigbor);
+        }
+        sortQueue();
+      });
+    }
+    function sortQueue() {
+      queue = queue.sort((a, b) => {
+        return a.distance - b.distance;
+      });
+    }
+  }
+
+  retraceSteps(start, end) {
+    const startVertex = this.vertices.get(JSON.stringify(start));
+    const endVertex = this.vertices.get(JSON.stringify(end));
+
+    const result = [];
+
+    let currentTracer = endVertex;
+    while (currentTracer.predecessor) {
+      result.unshift(currentTracer.value);
+      const newKey = currentTracer.predecessor;
+      const newVertex = this.vertices.get(newKey);
+      currentTracer = newVertex;
+    }
+    result.unshift(startVertex.value);
+
+    return result;
   }
 
   bfsTraversal(startKey, endKey) {

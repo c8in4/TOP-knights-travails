@@ -1,22 +1,25 @@
 import Graph from "./graph.js";
 
-knightMoves([0, 0], [3, 4]);
+knightMoves([1, 0], [4, 5]);
 
 function knightMoves(start, end) {
   if (JSON.stringify(start) == JSON.stringify(end)) {
     return console.log("You are already there.");
   }
 
+  // build graph
   const knightMovesGraph = new Graph();
+
+  // populate graph from start until end is found
   knightMovesGraph.populateGraph(start, end);
-  
-  knightMovesGraph.printGraph();
 
-  console.log("number of explored positions:", knightMovesGraph.vertices.size);
+  // find paths
+  knightMovesGraph.findPaths(start);
 
-  const result = knightMovesGraph.bfsTraversal(
-    JSON.stringify(start),
-    JSON.stringify(end)
-  );
-  console.log(result);
+  // retrace steps
+  const result = knightMovesGraph.retraceSteps(start, end);
+
+  // log result
+  console.log(`You made it in ${result.length - 1} moves! Here's your path:`);
+  result.forEach((position) => console.log(position));
 }
