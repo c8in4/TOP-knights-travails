@@ -58,6 +58,69 @@ export default class Graph {
     this.vertices.get(destinationKey).removeEdge(sourceKey);
   }
 
+  populateGraph(start, end) {
+    this.addVertex(JSON.stringify(start));
+    this.addVertex(JSON.stringify(end));
+    const startVertex = this.vertices.get(JSON.stringify(start));
+    const endVertex = this.vertices.get(JSON.stringify(end));
+
+    startVertex.distance = 0;
+    // startVertex.heuristic = calculateHeuristic(
+    //   startVertex.value,
+    //   endVertex.value
+    // );
+
+    endVertex.heuristic = 0;
+
+    const queue = [startVertex];
+
+    while (queue.length && !endVertex.edges.size) {
+      queue.sort((a, b) => {
+        return a.distance + a.heuristic - (b.distance + b.heuristic);
+      });
+      let currentVertex = queue.shift();
+
+      const possibleMoves = calculateAdjecents(currentVertex.value);
+      possibleMoves.forEach((move) => {
+        this.addEdge(currentVertex.key, JSON.stringify(move));
+        const newVertex = this.vertices.get(JSON.stringify(move));
+        // newVertex.predecessor = currentVertex.key;
+        // newVertex.distance = currentVertex.distance + 3;
+        // newVertex.heuristic = calculateHeuristic(
+        //   newVertex.value,
+        //   endVertex.value
+        // );
+        queue.push(newVertex);
+      });
+    }
+  }
+
+  bfsTraversal(startKey, endKey) {
+    if (!this.vertices.has(startKey)) {
+      throw new Error("Starting vertex does not exist.");
+    }
+
+    const queue = [startKey];
+    const visited = new Set();
+
+    while (queue) {
+      const currentKey = queue.shift();
+      if (currentKey == endKey) {
+        return this.vertices.get(currentKey);
+      }
+
+      if (!visited.has(currentKey)) {
+        visited.add(currentKey);
+        const neighbors = Array.from(
+          this.vertices.get(currentKey).edges.keys()
+        );
+        queue.push(...neighbors.filter((neighbor) => !visited.has(neighbor)));
+      }
+    }
+
+    return null;
+  }
+
   printGraph() {
     this.vertices.forEach((vertex, key) => {
       const edges = Array.from(vertex.edges).map(
@@ -65,7 +128,38 @@ export default class Graph {
         ([destinationKey, weight]) => `${destinationKey}(${weight})`
       );
       // Print each vertex and its connected edges
-      console.log(`${key} -> ${edges.join(", ")}`);
+      console.log(`${key} (d: ${vertex.distance}) -> ${edges.join(", ")}`);
     });
   }
+}
+
+// helper functions:
+function calculateAdjecents(coordinates) {
+  const POSSIBLE_MOVES = [
+    [coordinates[0] + 1, coordinates[1] + 2],
+    [coordinates[0] + 1, coordinates[1] - 2],
+    [coordinates[0] - 1, coordinates[1] + 2],
+    [coordinates[0] - 1, coordinates[1] - 2],
+    [coordinates[0] + 2, coordinates[1] + 1],
+    [coordinates[0] + 2, coordinates[1] - 1],
+    [coordinates[0] - 2, coordinates[1] + 1],
+    [coordinates[0] - 2, coordinates[1] - 1],
+  ];
+
+  const result = [];
+
+  POSSIBLE_MOVES.forEach((move) => {
+    if (move[0] >= 0 && move[0] <= 7 && move[1] >= 0 && move[1] <= 7) {
+      result.push(move);
+    }
+  });
+
+  return result;
+}
+
+function calculateHeuristic(a, b) {
+  const deltaX = Math.abs(a[0] - b[0]);
+  const deltaY = Math.abs(a[1] - b[1]);
+
+  return Math.floor(Math.sqrt(deltaX ** 2 + deltaY ** 2));
 }
