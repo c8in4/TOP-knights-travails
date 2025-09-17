@@ -1,25 +1,69 @@
-import Graph from "./graph.js";
+knightMoves([0, 0], [0, 0]);
 
-knightMoves([1, 0], [4, 5]);
+function getValidMoves([x, y]) {
+  const POSSIBLE_MOVES = [
+    [x + 1, y + 2],
+    [x + 1, y - 2],
+    [x - 1, y + 2],
+    [x - 1, y - 2],
+    [x + 2, y + 1],
+    [x + 2, y - 1],
+    [x - 2, y + 1],
+    [x - 2, y - 1],
+  ];
+
+  const moves = [];
+
+  POSSIBLE_MOVES.forEach(([x, y]) => moves.push([x, y]));
+
+  return moves.filter(([x, y]) => isValidPosition([x, y]));
+}
+
+function isValidPosition([x, y]) {
+  return x >= 0 && x <= 7 && y >= 0 && y <= 7
+}
+
+function isSamePosition(pos1, pos2) {
+  return (JSON.stringify(pos1) == JSON.stringify(pos2))
+}
 
 function knightMoves(start, end) {
-  if (JSON.stringify(start) == JSON.stringify(end)) {
-    return console.log("You are already there.");
+  // check inputs for validity
+  if (!isValidPosition(start) || !isValidPosition(end)) {
+    return console.log("Your start and/or end coordinates are out of range (0-7).");
   }
 
-  // build graph
-  const knightMovesGraph = new Graph();
+  if (isSamePosition(start, end)) {
+    return console.log("You are already there.")
+  }
 
-  // populate graph from start until end is found
-  knightMovesGraph.populateGraph(start, end);
+  const queue = [{ position: start, parent: null }]
+  const visited = new Map()
+  let current = queue[0]
 
-  // find paths
-  knightMovesGraph.findPaths(start);
+  // explore moves from start position to reach end position
+  while (queue.length && !isSamePosition(current.position, end)) {
+    current = queue.shift()
+    if (!visited.has(JSON.stringify(current.position))) {
+      visited.set(JSON.stringify(current.position), current)
+    }
+    getValidMoves(current.position).forEach(move => {
+      if (!visited.has(JSON.stringify(move))) {
+        queue.push({ position: move, parent: current.position })
+      }
+    })
+  }
+
+  const shortestPath = []
 
   // retrace steps
-  const result = knightMovesGraph.retraceSteps(start, end);
+  while (current.parent) {
+    shortestPath.unshift(current.position)
+    current = visited.get(JSON.stringify(current.parent))
+  }
+  shortestPath.unshift(start)
 
   // log result
-  console.log(`You made it in ${result.length - 1} moves! Here's your path:`);
-  result.forEach((position) => console.log(position));
+  console.log(`You made it in ${shortestPath.length - 1} moves! Here's your path:`);
+  shortestPath.forEach((position) => console.log(position));
 }
