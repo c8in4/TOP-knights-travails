@@ -1,4 +1,6 @@
-knightMoves([0, 0], [0, 0]);
+function isValidPosition([x, y]) {
+  return x >= 0 && x <= 7 && y >= 0 && y <= 7
+}
 
 function getValidMoves([x, y]) {
   const POSSIBLE_MOVES = [
@@ -17,10 +19,6 @@ function getValidMoves([x, y]) {
   POSSIBLE_MOVES.forEach(([x, y]) => moves.push([x, y]));
 
   return moves.filter(([x, y]) => isValidPosition([x, y]));
-}
-
-function isValidPosition([x, y]) {
-  return x >= 0 && x <= 7 && y >= 0 && y <= 7
 }
 
 function isSamePosition(pos1, pos2) {
@@ -62,8 +60,23 @@ function knightMoves(start, end) {
     current = visited.get(JSON.stringify(current.parent))
   }
   shortestPath.unshift(start)
+  while (current.parent) {
+    shortestPath.unshift(current.position)
+    current = visited.get(JSON.stringify(current.parent))
+  }
+  shortestPath.unshift(start)
 
   // log result
   console.log(`You made it in ${shortestPath.length - 1} moves! Here's your path:`);
   shortestPath.forEach((position) => console.log(position));
+  console.log(`You made it in ${shortestPath.length - 1} moves! Here's your path:`);
+  shortestPath.forEach((position) => console.log(position));
 }
+
+knightMoves([0, 0], [1, 2]);
+
+knightMoves([0, 0], [3, 3])
+
+knightMoves([3, 3], [0, 0])
+
+knightMoves([0, 0], [7, 7])
