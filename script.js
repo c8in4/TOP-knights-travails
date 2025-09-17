@@ -30,7 +30,6 @@ function knightMoves(start, end) {
   if (!isValidPosition(start) || !isValidPosition(end)) {
     return console.log("Your start and/or end coordinates are out of range (0-7).");
   }
-
   if (isSamePosition(start, end)) {
     return console.log("You are already there.")
   }
@@ -46,9 +45,7 @@ function knightMoves(start, end) {
       visited.set(JSON.stringify(current.position), current)
     }
     getValidMoves(current.position).forEach(move => {
-      if (!visited.has(JSON.stringify(move))) {
-        queue.push({ position: move, parent: current.position })
-      }
+      queue.push({ position: move, parent: current.position })
     })
   }
 
@@ -60,15 +57,8 @@ function knightMoves(start, end) {
     current = visited.get(JSON.stringify(current.parent))
   }
   shortestPath.unshift(start)
-  while (current.parent) {
-    shortestPath.unshift(current.position)
-    current = visited.get(JSON.stringify(current.parent))
-  }
-  shortestPath.unshift(start)
 
   // log result
-  console.log(`You made it in ${shortestPath.length - 1} moves! Here's your path:`);
-  shortestPath.forEach((position) => console.log(position));
   console.log(`You made it in ${shortestPath.length - 1} moves! Here's your path:`);
   shortestPath.forEach((position) => console.log(position));
 }
